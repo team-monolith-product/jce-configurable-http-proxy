@@ -1,4 +1,4 @@
-FROM docker.io/library/node:24-alpine3.23 AS dev
+FROM docker.io/library/node:24-alpine3.23 AS base
 # ref: https://hub.docker.com/_/node/tags?name=alpine
 
 # Set labels based on the Open Containers Initiative (OCI):
@@ -20,14 +20,6 @@ RUN mkdir -p /srv/configurable-http-proxy
 COPY . /srv/configurable-http-proxy/
 WORKDIR /srv/configurable-http-proxy
 
-# Install configurable-http-proxy according to package-lock.json (ci) without
-# devDepdendencies (--omit=dev), then uninstall npm which isn't needed.
-RUN npm ci --omit=dev \
- && npm uninstall -g npm
-
-# Switch from the root user to the nobody user
-USER 65534
-
 # Expose the proxy for traffic to be proxied (8000) and the
 # REST API where it can be configured (8001)
 EXPOSE 8000
@@ -36,3 +28,16 @@ EXPOSE 8001
 # Put configurable-http-proxy on path for chp-docker-entrypoint
 ENV PATH=/srv/configurable-http-proxy/bin:$PATH
 ENTRYPOINT ["/srv/configurable-http-proxy/chp-docker-entrypoint"]
+
+# Dev stage retains devDependencies for diagnostics and ad-hoc tests inside
+# the cluster.
+FROM base AS dev
+RUN npm ci
+USER 65534
+
+# Production stage drops devDependencies and removes npm itself to minimize
+# attack surface.
+FROM base AS prd
+RUN npm ci --omit=dev \
+ && npm uninstall -g npm
+USER 65534
