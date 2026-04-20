@@ -14,7 +14,6 @@ jobs:
     with:
       env: prd
       target: main
-      dockerTarget: prd
       helmRepository: jce-jupyter-hub-helm
       propertyPath: jupyterhub.proxy.chp.image.tag
       updateTargets: |
