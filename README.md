@@ -33,7 +33,7 @@ functionality to [JupyterHub] deployments.
   - [Setting a target for custom error handling](#setting-a-target-for-custom-error-handling)
 - [Host-based routing](#host-based-routing)
 - [Custom storage backends](#custom-storage-backends)
-  - [Built-in Redis backend](#built-in-redis-backend)
+  - [Built-in Valkey backend](#built-in-valkey-backend)
 - [Troubleshooting](#troubleshooting)
 
 ## Install
@@ -373,28 +373,30 @@ The class is loaded with `require()` and instantiated with the full options obje
 
 [**Return to top**][]
 
-### Built-in Redis backend
+### Built-in Valkey backend
 
-This fork ships an `ioredis`-based backend at `lib/redis-store.cjs`. It persists routes in a Redis hash so they survive proxy restarts. Prefix lookups stay fast because the in-memory `URLTrie` is hydrated from Redis on startup and updated locally on writes.
+This fork ships a [`@valkey/valkey-glide`](https://valkey.io/valkey-glide/node/)-based backend at `lib/valkey-store.cjs`. It persists routes in a Valkey/Redis-compatible hash so they survive proxy restarts. Prefix lookups stay fast because the in-memory `URLTrie` is hydrated on startup and updated locally on writes.
 
 ```bash
-REDIS_URL=redis://redis.svc.cluster.local:6379 \
-configurable-http-proxy --storage-backend ./lib/redis-store.cjs
+VALKEY_URL=redis://valkey.svc.cluster.local:6379 \
+configurable-http-proxy --storage-backend ./lib/valkey-store.cjs
 ```
 
 Configuration:
 
-| Option           | Env var            | Default                                 |
-| ---------------- | ------------------ | --------------------------------------- |
-| `redisUrl`       | `REDIS_URL`        | `redis://localhost:6379`                |
-| `redisKeyPrefix` | `REDIS_KEY_PREFIX` | `chp`                                   |
-| `redisOptions`   | —                  | passed through to `ioredis` constructor |
+| Option            | Env var                                           | Default                                        |
+| ----------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `valkeyUrl`       | `VALKEY_URL` (fallback `REDIS_URL`)               | `localhost:6379`                               |
+| `valkeyKeyPrefix` | `VALKEY_KEY_PREFIX` (fallback `REDIS_KEY_PREFIX`) | `chp`                                          |
+| `valkeyConfig`    | —                                                 | passed through to `GlideClient.createClient()` |
 
-Routes are stored in a single Redis hash at `<keyPrefix>:routes`, with each field being the cleaned route path and each value the JSON-serialized route data.
+Routes are stored in a single hash at `<keyPrefix>:routes`, with each field being the cleaned route path and each value the JSON-serialized route data.
 
-**Single-proxy assumption:** writes update the local trie directly. If multiple proxy instances share the same Redis backend, route changes from other instances are not reflected until a reconnect or restart triggers re-hydration. Multi-instance synchronization (Redis Pub/Sub or keyspace notifications) is tracked as follow-up work.
+**Single-proxy assumption:** writes update the local trie directly. If multiple proxy instances share the same Valkey backend, route changes from other instances are not reflected until a restart triggers re-hydration. Multi-instance synchronization (Pub/Sub or keyspace notifications) is tracked as follow-up work.
 
-**Failure behavior:** if Redis is unavailable, route lookups and mutations reject. The `ioredis` client reconnects automatically; once `ready` fires again the local trie is re-hydrated.
+**Failure behavior:** if Valkey is unavailable, the initial `ready` Promise rejects and route lookups/mutations propagate the error. `valkey-glide` handles reconnection internally for transient failures.
+
+The Valkey-glide client is protocol-compatible with both Valkey and Redis servers, so the same backend works against ElastiCache Valkey, ElastiCache Redis, or any Redis ≥ 6 deployment.
 
 [**Return to top**][]
 
