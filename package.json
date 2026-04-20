@@ -30,7 +30,6 @@
   "files": [
     "index.js",
     "lib/*.js",
-    "lib/*.cjs",
     "lib/error/*.html",
     "bin/configurable-http-proxy"
   ],
