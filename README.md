@@ -387,18 +387,14 @@ configurable-http-proxy
 
 Without `VALKEY_URL` the proxy falls back to the in-memory `MemoryStore` (upstream default). The `--storage-backend` plugin mechanism is still honored when an external storage class is explicitly requested.
 
-Endpoint and auth are intentionally split so the URL can be a plain helm value (terraform-injected) while only the auth token flows through a Kubernetes secret.
+| Option            | Env var             | Default                                        |
+| ----------------- | ------------------- | ---------------------------------------------- |
+| `valkeyUrl`       | `VALKEY_URL`        | `localhost:6379`                               |
+| `valkeyAuthToken` | `VALKEY_AUTH_TOKEN` | none (no AUTH)                                 |
+| `valkeyKeyPrefix` | `VALKEY_KEY_PREFIX` | `chp`                                          |
+| `valkeyConfig`    | —                   | passed through to `GlideClient.createClient()` |
 
-| Option            | Env var             | Default                                           |
-| ----------------- | ------------------- | ------------------------------------------------- |
-| `valkeyUrl`       | `VALKEY_URL`        | `localhost:6379`                                  |
-| `valkeyAuthToken` | `VALKEY_AUTH_TOKEN` | none (no AUTH)                                    |
-| `valkeyUsername`  | `VALKEY_USERNAME`   | none (default ACL user)                           |
-| `valkeyUseTls`    | `VALKEY_USE_TLS`    | inferred from URL scheme (`rediss://` / `tls://`) |
-| `valkeyKeyPrefix` | `VALKEY_KEY_PREFIX` | `chp`                                             |
-| `valkeyConfig`    | —                   | passed through to `GlideClient.createClient()`    |
-
-`VALKEY_URL` carries the endpoint only (e.g. `rediss://host:6379` or `host:6379`). Any user/password embedded in the URL is ignored — pass them via `VALKEY_AUTH_TOKEN` / `VALKEY_USERNAME` instead.
+`VALKEY_URL` carries only the endpoint (e.g. `rediss://host:6379`). TLS is enabled when scheme is `rediss://` or `tls://`. Auth flows through `VALKEY_AUTH_TOKEN` only.
 
 Routes are stored in a single hash at `<keyPrefix>:routes`. Writes are also broadcast on `<keyPrefix>:routes:changes` so that other proxy instances sharing the same Valkey can update their local routing trie without a restart. Self-echo is filtered by a per-instance random ID.
 
