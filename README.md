@@ -32,8 +32,6 @@ functionality to [JupyterHub] deployments.
   - [Setting the path for custom error pages](#setting-the-path-for-custom-error-pages)
   - [Setting a target for custom error handling](#setting-a-target-for-custom-error-handling)
 - [Host-based routing](#host-based-routing)
-- [Custom storage backends](#custom-storage-backends)
-  - [Built-in Valkey backend](#built-in-valkey-backend)
 - [Troubleshooting](#troubleshooting)
 
 ## Install
@@ -358,49 +356,6 @@ the hostname were the first part of the URL path, e.g.:
   "/otherdomain.biz": "http://10.0.1.4:5555",
 }
 ```
-
-[**Return to top**][]
-
-## Custom storage backends
-
-The routing table is stored in memory by default (`MemoryStore`), so routes are lost when the proxy restarts. CHP supports loading an alternative storage class via the `--storage-backend` CLI flag:
-
-```bash
-configurable-http-proxy --storage-backend ./path/to/my-store.cjs
-```
-
-The class is loaded with `require()` and instantiated with the full options object. It must implement `getTarget`, `getAll`, `add`, `update`, `remove`, and `get` (returning Promises).
-
-[**Return to top**][]
-
-### Built-in Valkey backend
-
-This fork ships a [`@valkey/valkey-glide`](https://valkey.io/valkey-glide/node/)-based backend (`ValkeyStore` in `lib/store.js`). It persists routes in a Valkey/Redis-compatible hash so they survive proxy restarts. Prefix lookups stay fast because the in-memory `URLTrie` is hydrated on startup and updated locally on writes.
-
-The backend is selected automatically when `VALKEY_URL` is set in the environment — no CLI flag required:
-
-```bash
-VALKEY_URL=rediss://valkey.svc.cluster.local:6379 \
-VALKEY_AUTH_TOKEN=$VALKEY_AUTH_TOKEN \
-configurable-http-proxy
-```
-
-Without `VALKEY_URL` the proxy falls back to the in-memory `MemoryStore` (upstream default). The `--storage-backend` plugin mechanism is still honored when an external storage class is explicitly requested.
-
-| Option            | Env var             | Default                                        |
-| ----------------- | ------------------- | ---------------------------------------------- |
-| `valkeyUrl`       | `VALKEY_URL`        | `localhost:6379`                               |
-| `valkeyAuthToken` | `VALKEY_AUTH_TOKEN` | none (no AUTH)                                 |
-| `valkeyKeyPrefix` | `VALKEY_KEY_PREFIX` | `chp`                                          |
-| `valkeyConfig`    | —                   | passed through to `GlideClient.createClient()` |
-
-`VALKEY_URL` carries only the endpoint (e.g. `rediss://host:6379`). TLS is enabled when scheme is `rediss://` or `tls://`. Auth flows through `VALKEY_AUTH_TOKEN` only.
-
-Routes are stored in a single hash at `<keyPrefix>:routes`. Writes are also broadcast on `<keyPrefix>:routes:changes` so that other proxy instances sharing the same Valkey can update their local routing trie without a restart. Self-echo is filtered by a per-instance random ID.
-
-**Failure behavior:** if Valkey is unavailable on startup, the initial `ready` Promise rejects and route lookups/mutations propagate the error. `valkey-glide` handles reconnection internally for transient failures. Pub/Sub message loss (e.g. during reconnects) is recovered on the next proxy restart via a full re-hydrate.
-
-The Valkey-glide client is protocol-compatible with both Valkey and Redis servers, so the same backend works against ElastiCache Valkey, ElastiCache Redis, or any Redis ≥ 6 deployment.
 
 [**Return to top**][]
 
