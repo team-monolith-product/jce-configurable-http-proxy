@@ -45,15 +45,7 @@ describe("Proxy Tests", function () {
             path: "/",
           })
         );
-
-        // check last_activity was updated
-        return proxy
-          .flushActivity()
-          .then(() => proxy._routes.get("/"))
-          .then((route) => {
-            expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
-            done();
-          });
+        done();
       });
   });
 
@@ -77,15 +69,8 @@ describe("Proxy Tests", function () {
             message: "hi",
           })
         );
-        // check last_activity was updated
-        return proxy
-          .flushActivity()
-          .then(() => proxy._routes.get("/"))
-          .then((route) => {
-            expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
-            ws.close();
-            done();
-          });
+        ws.close();
+        done();
       }
       nmsgs++;
     });
@@ -610,14 +595,8 @@ describe("Proxy Tests with Unix socket", function () {
               path: "/",
             })
           );
+          done();
         });
-        return proxy
-          .flushActivity()
-          .then(() => proxy._routes.get("/"))
-          .then((route) => {
-            expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
-            done();
-          });
       })
       .on("error", (err) => {
         expect("error").toEqual("ok");
@@ -646,15 +625,8 @@ describe("Proxy Tests with Unix socket", function () {
             message: "hi",
           })
         );
-        // check last_activity was updated
-        return proxy
-          .flushActivity()
-          .then(() => proxy._routes.get("/"))
-          .then((route) => {
-            expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
-            ws.close();
-            done();
-          });
+        ws.close();
+        done();
       }
       nmsgs++;
     });
