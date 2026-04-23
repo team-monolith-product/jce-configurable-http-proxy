@@ -3,5 +3,4 @@ export default {
   random: false,
   spec_dir: "test",
   spec_files: ["*_spec.js"],
-  helpers: ["config/helpers.mjs"],
 };
