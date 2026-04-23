@@ -15,7 +15,8 @@ jobs:
       env: prd
       target: main
       helmRepository: jce-jupyter-hub-helm
-      propertyPath: jupyterhub.proxy.chp.image.tag
+      # INF-136 canary: jupyterhub-1 shard 만 fork 이미지 tag 업데이트.
+      propertyPath: jupyterhub-1.proxy.chp.image.tag
       updateTargets: |
         {
           "aws": {
