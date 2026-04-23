@@ -135,10 +135,7 @@ describe("ValkeyStore", function () {
   describe("last_activity revival", function () {
     it("returns last_activity as Date object", async function () {
       const ts = new Date("2026-04-21T12:00:00.000Z");
-      await this.subject.add("/timed", {
-        target: "http://x:1",
-        last_activity: ts,
-      });
+      await this.subject.add("/timed", { target: "http://x:1", last_activity: ts });
       const route = await this.subject.get("/timed");
       expect(route.last_activity instanceof Date).toBe(true);
       expect(route.last_activity.getTime()).toEqual(ts.getTime());

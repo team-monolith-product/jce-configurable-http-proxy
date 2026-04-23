@@ -43,7 +43,7 @@ describe("Proxy Tests", function () {
         expect(body).toEqual(
           jasmine.objectContaining({
             path: "/",
-          }),
+          })
         );
 
         // check last_activity was updated
@@ -75,7 +75,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/",
             message: "hi",
-          }),
+          })
         );
         // check last_activity was updated
         return proxy
@@ -104,7 +104,7 @@ describe("Proxy Tests", function () {
         expect(body).toEqual(
           jasmine.objectContaining({
             path: "/",
-          }),
+          })
         );
         done();
       });
@@ -126,13 +126,13 @@ describe("Proxy Tests", function () {
         expect(body.headers).toEqual(
           jasmine.objectContaining({
             testing: "Test Passed",
-          }),
+          })
         );
         expect(called.proxyRequest).toBe(true);
         expect(body).toEqual(
           jasmine.objectContaining({
             path: "/",
-          }),
+          })
         );
       })
       .then(done);
@@ -148,7 +148,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/bar",
             url: "/foo/bar/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -165,7 +165,7 @@ describe("Proxy Tests", function () {
             target: "http://127.0.0.1:" + testPort + "/foo",
             path: "/bar",
             url: "/foo/bar?query=foo",
-          }),
+          })
         );
         done();
       });
@@ -181,7 +181,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/b@r/b r",
             url: "/foo/b%40r/b%20r/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -197,7 +197,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/b@r/b r",
             url: "/foo/b@r/b%20r/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -214,7 +214,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/bar",
             url: "/bar/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -231,7 +231,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/bar",
             url: "/foo/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -283,7 +283,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             path: "/bar",
             url: "/rest/of/it",
-          }),
+          })
         );
         done();
       });
@@ -300,7 +300,7 @@ describe("Proxy Tests", function () {
           jasmine.objectContaining({
             target: "http://127.0.0.1:" + testPort,
             url: "/some/path",
-          }),
+          })
         );
       })
       .then(done);
@@ -320,9 +320,7 @@ describe("Proxy Tests", function () {
     proxy
       .removeRoute("/")
       // add a route to nowhere
-      .then(() =>
-        proxy.addRoute("/missing", { target: "https://127.0.0.1:54321" }),
-      )
+      .then(() => proxy.addRoute("/missing", { target: "https://127.0.0.1:54321" }))
       .then(() => {
         // set last_activity into the past
         proxy._routes.update("/missing", { last_activity: firstActivity });
@@ -373,9 +371,7 @@ describe("Proxy Tests", function () {
     proxy.errorPath = path.join(__dirname, "error");
     proxy
       .removeRoute("/")
-      .then(() =>
-        proxy.addRoute("/missing", { target: "https://127.0.0.1:54321" }),
-      )
+      .then(() => proxy.addRoute("/missing", { target: "https://127.0.0.1:54321" }))
       .then(() => fetch(hostUrl + "/nope"))
       .then((res) => {
         expect(res.status).toEqual(404);
@@ -443,18 +439,8 @@ describe("Proxy Tests", function () {
   it("Redirect location untouched without rewrite options", function (done) {
     var redirectTo = "http://foo.com:12345/whatever";
     util
-      .addTargetRedirecting(
-        proxy,
-        "/external/urlpath/",
-        testPort,
-        "/internal/urlpath/",
-        redirectTo,
-      )
-      .then(() =>
-        fetch(proxyUrl + "/external/urlpath/rest/of/it", {
-          redirect: "manual",
-        }),
-      )
+      .addTargetRedirecting(proxy, "/external/urlpath/", testPort, "/internal/urlpath/", redirectTo)
+      .then(() => fetch(proxyUrl + "/external/urlpath/rest/of/it", { redirect: "manual" }))
       .then((res) => {
         expect(res.status).toEqual(301);
         expect(res.headers.get("location")).toEqual(redirectTo);
@@ -474,8 +460,7 @@ describe("Proxy Tests", function () {
     // where the backend server redirects us.
     // Note that http-proxy requires (logically) the redirection to be to the same (internal) host.
     var redirectTo = "https://127.0.0.1:" + testPort + "/whatever";
-    var expectedRedirect =
-      "https://127.0.0.1:" + listenOptions.port + "/whatever";
+    var expectedRedirect = "https://127.0.0.1:" + listenOptions.port + "/whatever";
 
     util
       .setupProxy(listenOptions, options, [])
@@ -485,13 +470,13 @@ describe("Proxy Tests", function () {
           "/external/urlpath/",
           testPort,
           "/internal/urlpath/",
-          redirectTo,
-        ),
+          redirectTo
+        )
       )
       .then(() =>
         fetch("http://127.0.0.1:" + listenOptions.port + "/external/urlpath/", {
           redirect: "manual",
-        }),
+        })
       )
       .then((res) => {
         expect(res.status).toEqual(301);
@@ -514,9 +499,7 @@ describe("Proxy Tests", function () {
 
   it("internal ssl test", function (done) {
     if (!fs.existsSync(path.resolve(__dirname, "ssl"))) {
-      console.log(
-        "skipping ssl test without ssl certs. Run make_internal_ssl.py first.",
-      );
+      console.log("skipping ssl test without ssl certs. Run make_internal_ssl.py first.");
       done();
       return;
     }
@@ -526,15 +509,9 @@ describe("Proxy Tests", function () {
     var testPort = listenOptions.port + 20;
     var options = {
       clientSsl: {
-        key: fs.readFileSync(
-          path.resolve(__dirname, "ssl/proxy-client/proxy-client.key"),
-        ),
-        cert: fs.readFileSync(
-          path.resolve(__dirname, "ssl/proxy-client/proxy-client.crt"),
-        ),
-        ca: fs.readFileSync(
-          path.resolve(__dirname, "ssl/proxy-client-ca_trust.crt"),
-        ),
+        key: fs.readFileSync(path.resolve(__dirname, "ssl/proxy-client/proxy-client.key")),
+        cert: fs.readFileSync(path.resolve(__dirname, "ssl/proxy-client/proxy-client.crt")),
+        ca: fs.readFileSync(path.resolve(__dirname, "ssl/proxy-client-ca_trust.crt")),
       },
     };
 
@@ -542,21 +519,13 @@ describe("Proxy Tests", function () {
       .setupProxy(listenOptions, options, [])
       .then((proxy) =>
         util.addTarget(proxy, "/backend/", testPort, false, null, {
-          key: fs.readFileSync(
-            path.resolve(__dirname, "ssl/backend/backend.key"),
-          ),
-          cert: fs.readFileSync(
-            path.resolve(__dirname, "ssl/backend/backend.crt"),
-          ),
-          ca: fs.readFileSync(
-            path.resolve(__dirname, "ssl/backend-ca_trust.crt"),
-          ),
+          key: fs.readFileSync(path.resolve(__dirname, "ssl/backend/backend.key")),
+          cert: fs.readFileSync(path.resolve(__dirname, "ssl/backend/backend.crt")),
+          ca: fs.readFileSync(path.resolve(__dirname, "ssl/backend-ca_trust.crt")),
           requestCert: true,
-        }),
+        })
       )
-      .then(() =>
-        fetch("http://127.0.0.1:" + listenOptions.port + "/backend/urlpath/"),
-      )
+      .then(() => fetch("http://127.0.0.1:" + listenOptions.port + "/backend/urlpath/"))
       .then((res) => {
         expect(res.status).toEqual(200);
       })
@@ -573,11 +542,7 @@ describe("Proxy Tests", function () {
     var unixSocketUri = encodeURIComponent(tmp.tmpNameSync());
 
     util
-      .setupProxy(
-        listenOptions,
-        { errorTarget: "unix+http://" + unixSocketUri },
-        [],
-      )
+      .setupProxy(listenOptions, { errorTarget: "unix+http://" + unixSocketUri }, [])
       .then(() => fetch("http://127.0.0.1:" + listenOptions.port + "/foo/bar"))
       .then((res) => {
         expect(res.status).toEqual(404);
@@ -598,9 +563,7 @@ describe("Proxy Tests", function () {
 
     util
       .setupProxy(listenOptions, {}, [])
-      .then((proxy) =>
-        util.addTarget(proxy, "/unix", 0, false, null, null, unixSocketUri),
-      )
+      .then((proxy) => util.addTarget(proxy, "/unix", 0, false, null, null, unixSocketUri))
       .then(() => fetch("http://127.0.0.1:" + listenOptions.port + "/unix"))
       .then((res) => {
         expect(res.status).toEqual(200);
@@ -645,7 +608,7 @@ describe("Proxy Tests with Unix socket", function () {
           expect(body).toEqual(
             jasmine.objectContaining({
               path: "/",
-            }),
+            })
           );
         });
         return proxy
@@ -681,7 +644,7 @@ describe("Proxy Tests with Unix socket", function () {
           jasmine.objectContaining({
             path: "/",
             message: "hi",
-          }),
+          })
         );
         // check last_activity was updated
         return proxy
