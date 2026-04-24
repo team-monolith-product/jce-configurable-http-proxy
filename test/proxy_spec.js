@@ -45,7 +45,12 @@ describe("Proxy Tests", function () {
             path: "/",
           })
         );
-        done();
+
+        // check last_activity was updated
+        return proxy._routes.get("/").then((route) => {
+          expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
+          done();
+        });
       });
   });
 
@@ -69,8 +74,12 @@ describe("Proxy Tests", function () {
             message: "hi",
           })
         );
-        ws.close();
-        done();
+        // check last_activity was updated
+        return proxy._routes.get("/").then((route) => {
+          expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
+          ws.close();
+          done();
+        });
       }
       nmsgs++;
     });
@@ -595,6 +604,9 @@ describe("Proxy Tests with Unix socket", function () {
               path: "/",
             })
           );
+        });
+        return proxy._routes.get("/").then((route) => {
+          expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
           done();
         });
       })
@@ -625,8 +637,12 @@ describe("Proxy Tests with Unix socket", function () {
             message: "hi",
           })
         );
-        ws.close();
-        done();
+        // check last_activity was updated
+        return proxy._routes.get("/").then((route) => {
+          expect(route.last_activity).toBeGreaterThan(proxy._setup_timestamp);
+          ws.close();
+          done();
+        });
       }
       nmsgs++;
     });
