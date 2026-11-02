@@ -98,8 +98,15 @@ jobs:
         env:
           VALKEY_URL: redis://localhost:6379
         run: |
-          npm test
+          # c8/yargs cannot start on the Node 27 alpha selected by current.
+          # Keep the canary tests running directly; collect coverage on LTS.
+          if [ "${{ matrix.node_version }}" = "current" ]; then
+            node node_modules/jasmine/bin/jasmine.js --config=test/config/jasmine.mjs
+          else
+            npm test
+          fi
 
       # Action Repo: https://github.com/codecov/codecov-action
       - name: "Upload coverage to codecov"
+        if: matrix.node_version != 'current'
         uses: codecov/codecov-action@v6
