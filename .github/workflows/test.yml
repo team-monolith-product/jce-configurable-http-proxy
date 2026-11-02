@@ -98,8 +98,7 @@ jobs:
         env:
           VALKEY_URL: redis://localhost:6379
         run: |
-          # c8/yargs cannot start on the Node 27 alpha selected by current.
-          # Keep the canary tests running directly; collect coverage on LTS.
+          # c8/yargs fails to start on the pre-release Node that current resolves to.
           if [ "${{ matrix.node_version }}" = "current" ]; then
             node node_modules/jasmine/bin/jasmine.js --config=test/config/jasmine.mjs
           else
